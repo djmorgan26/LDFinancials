@@ -17,7 +17,7 @@ export default function Header({
         <div className="flex justify-between items-center">
           {/* Logo & Title */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-indigo-400">{title}</h1>
+            <h1 className="text-xl font-bold text-green-400">{title}</h1>
           </div>
           
           {/* Desktop Navigation */}
@@ -27,7 +27,7 @@ export default function Header({
                 <li key={index}>
                   <a 
                     href={link.url} 
-                    className="text-gray-300 hover:text-indigo-400 transition-colors"
+                    className="text-gray-300 hover:text-green-400 transition-colors"
                   >
                     {link.text}
                   </a>
@@ -66,7 +66,7 @@ export default function Header({
                 <li key={index}>
                   <a 
                     href={link.url} 
-                    className="block py-2 text-gray-300 hover:text-indigo-400 transition-colors"
+                    className="block py-2 text-gray-300 hover:text-green-400 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {link.text}
