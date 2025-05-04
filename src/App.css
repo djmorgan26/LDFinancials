@@ -36,10 +36,10 @@
   
   /* Define dark mode colors (Tailwind already handles most of this) */
   :root {
-    --primary: #4f46e5; /* indigo-600 */
-    --primary-hover: #4338ca; /* indigo-700 */
+    --primary: #22c55e; /* green-500 */
+    --primary-hover: #16a34a; /* green-600 */
     --surface: #1f2937; /* gray-800 */
     --surface-accent: #374151; /* gray-700 */
     --text: #f9fafb; /* gray-50 */
-    --text-muted: #9ca3af; /* gray-400 */
+    --text-muted: #a3a3a3; /* gray-400 */
   }

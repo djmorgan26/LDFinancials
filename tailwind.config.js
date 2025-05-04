@@ -10,8 +10,8 @@ module.exports = {
       colors: {
         // Custom colors for your financial application
         primary: {
-          DEFAULT: '#4f46e5', // indigo-600
-          dark: '#4338ca',    // indigo-700
+          DEFAULT: '#10b981', // emerald-500
+          dark: '#059669',    // emerald-600
         },
         secondary: {
           DEFAULT: '#0ea5e9', // sky-500
