@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export default function Header({ 
-  title = "Logan's Financials", 
+  title = "L&D Financials", 
   links = [
     { text: 'Dashboard', url: '/' },
     { text: 'Transactions', url: '/transactions' },
