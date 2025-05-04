@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
+import { Auth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import logo from '../assets/AI_Finance_logo_nobackground_allgreen.png';
 
-const SignIn: React.FC = () => {
-  const [isHovered, setIsHovered] = useState(false);
+const provider = new GoogleAuthProvider();
+
+interface SignInProps {
+  auth: Auth;
+}
+
+const SignIn: React.FC<SignInProps> = ({ auth }) => {
+  const [isHovered, setIsHovered] = useState(false);  
+
+  const handleGoogleSignIn = async () => {
+    signInWithPopup(auth, provider)
+    .catch(error => console.error("Error signing in with Google", error));
+  };
 
 
   return (
@@ -46,12 +58,22 @@ const SignIn: React.FC = () => {
             required
           />
         </div>
-        <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
-          >
-            Sign In
-          </button>
+        <div className='flex justify-center'>
+          <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              className="w-full bg-transparent border-2 border-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+            >
+              Sign in with Google
+            </button>
+
+        </div>
+          <button
+              type="submit"
+              className="w-full bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+            >
+              Sign In
+            </button>
         </form>
       </div>
     </div>

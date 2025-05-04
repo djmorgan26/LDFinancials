@@ -1,27 +1,84 @@
+import { Auth, signOut } from 'firebase/auth';
 import { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGaugeHigh, faMoneyBillTransfer, faChartColumn, faUserCircle, faIdCard, faGear, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faGaugeHigh, 
+  faMoneyBillTransfer, 
+  faChartColumn, 
+  faUserCircle, 
+  faIdCard, 
+  faGear, 
+  faRightFromBracket
+} from '@fortawesome/free-solid-svg-icons';
 
-export default function Header() {
-  
-  
+
+interface HeaderProps {
+  auth: Auth;
+}
+
+// Define the link types for TypeScript
+interface Link {
+  text: string;
+  url: string;
+  icon: string;
+}
+
+interface DropdownOption {
+  text: string;
+  url: string;
+  icon: string;
+}
+
+export default function Header({ auth }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const accountRef = useRef<HTMLLIElement>(null);
 
-  const title = "L&D Financial Dashboard"
-  const links = [
-    { text: 'Dashboard', url: '/', icon: 'fa-solid fa-gauge-high' },
+  const title = "L&D Financial Dashboard";
+  
+  const links: Link[] = [
+    { text: 'Dashboard', url: '/', icon: 'fa-gauge-high' },
     { text: 'Transactions', url: '/transactions', icon: 'fa-money-bill-transfer' },
     { text: 'Reports', url: '/reports', icon: 'fa-chart-column' },
     { text: 'Account', url: '/account', icon: 'fa-user-circle' },
-];
+  ];
 
-  const accountDropdownOptions = [
-  { text: 'Profile', url: '/profile', icon: 'fa-id-card' },
-  { text: 'Settings', url: '/settings', icon: 'fa-gear' },
-  { text: 'Sign Out', url: '/signout', icon: 'fa-right-from-bracket' },
-];
+  const accountDropdownOptions: DropdownOption[] = [
+    { text: 'Profile', url: '/profile', icon: 'fa-id-card' },
+    { text: 'Settings', url: '/settings', icon: 'fa-gear' },
+    { text: 'Sign Out', url: '/signout', icon: 'fa-right-from-bracket' },
+  ];
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      window.location.href = '/login'; // Redirect to login page after sign out
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Map icons to their corresponding FontAwesome icons
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'fa-gauge-high':
+        return faGaugeHigh;
+      case 'fa-money-bill-transfer':
+        return faMoneyBillTransfer;
+      case 'fa-chart-column':
+        return faChartColumn;
+      case 'fa-user-circle':
+        return faUserCircle;
+      case 'fa-id-card':
+        return faIdCard;
+      case 'fa-gear':
+        return faGear;
+      case 'fa-right-from-bracket':
+        return faRightFromBracket;
+      default:
+        return faUserCircle;
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,10 +99,17 @@ export default function Header() {
         <div className="flex justify-between items-center">
           {/* Business Logo & Title */}
           <div className="flex items-center">
-            <a href="/">
-              <img src="../src/assets/AI_Finance_logo_nobackground_allgreen.png" alt="Business Logo" className="h-16 w-16 mr-2" /> 
-            </a>
-            <a href="/">
+            <a href="/" className="flex items-center">
+              <img 
+                src="/src/assets/AI_Finance_logo_nobackground_allgreen.png" 
+                alt="Business Logo" 
+                className="h-16 w-16 mr-2" 
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = 'https://via.placeholder.com/64x64?text=AI+Finance';
+                }}
+              /> 
               <h1 className="text-xl font-bold text-green-400">{title}</h1>
             </a>
           </div>
@@ -62,22 +126,32 @@ export default function Header() {
                       onMouseLeave={() => setIsAccountDropdownOpen(false)}
                     >
                       <div className='flex items-center'>
-                        <FontAwesomeIcon icon={faUserCircle} className="mr-2" />
-                        {link.text}
+                        <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
+                        {link.text}                        
                       </div>
                       {isAccountDropdownOpen && (
                         <ul className="absolute right-0 mt-2 py-2 w-40 bg-gray-800 border border-gray-700 rounded shadow-lg">
                           {accountDropdownOptions.map((option, optionIndex) => (
                             <li key={optionIndex}>
-                              <a
-                                href={option.url}
-                                className="block px-4 py-2 text-gray-300 hover:bg-gray-700"
-                              >
-                                <div className='flex items-center'>
-                                  <FontAwesomeIcon icon={option.icon === 'fa-id-card' ? faIdCard : option.icon === 'fa-gear' ? faGear : faRightFromBracket} className="mr-2" />
+                              {option.text === 'Sign Out' ? (
+                                <button
+                                  onClick={handleSignOut}
+                                  className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-700 flex items-center"
+                                >
+                                  <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
                                   {option.text}
-                                </div>
-                              </a>
+                                </button>
+                              ) : (
+                                <a
+                                  href={option.url}
+                                  className="block px-4 py-2 text-gray-300 hover:bg-gray-700"
+                                >
+                                  <div className='flex items-center'>
+                                    <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
+                                    {option.text}
+                                  </div>
+                                </a>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -89,8 +163,8 @@ export default function Header() {
                       className="text-gray-300 hover:text-green-400 transition-colors"
                     >
                       <div className='flex items-center'>
-                         <FontAwesomeIcon icon={link.icon === 'fa-gauge-high' ? faGaugeHigh : link.icon === 'fa-money-bill-transfer' ? faMoneyBillTransfer : faChartColumn} className="mr-2" />
-                         {link.text}
+                        <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
+                        {link.text}
                       </div>
                     </a>
                   )}
@@ -104,6 +178,7 @@ export default function Header() {
             type="button"
             className="md:hidden text-gray-300 hover:text-white focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
             <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
               {isMenuOpen ? (
@@ -127,16 +202,52 @@ export default function Header() {
             <ul className="space-y-2">
               {links.map((link, index) => (
                 <li key={index}>
-                  <a 
-                    href={link.url} 
-                    className="block py-2 text-gray-300 hover:text-green-400 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <div className='flex items-center'>
-                      <FontAwesomeIcon icon={link.icon === 'fa-gauge-high' ? faGaugeHigh : link.icon === 'fa-money-bill-transfer' ? faMoneyBillTransfer : link.icon === 'fa-chart-column' ? faChartColumn : faUserCircle} className="mr-2" />
-                      {link.text}
+                  {link.text === 'Account' ? (
+                    <div className="py-2">
+                      <div 
+                        className="flex items-center text-gray-300 hover:text-green-400 cursor-pointer mb-2"
+                        onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
+                      >
+                        <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
+                        {link.text}
+                      </div>
+                      
+                      {isAccountDropdownOpen && (
+                        <ul className="pl-6 space-y-2 border-l border-gray-700">
+                          {accountDropdownOptions.map((option, optionIndex) => (
+                            <li key={optionIndex}>
+                              {option.text === 'Sign Out' ? (
+                                <button
+                                  onClick={handleSignOut}
+                                  className="w-full text-left py-1 text-gray-300 hover:text-green-400 flex items-center"
+                                >
+                                  <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
+                                  {option.text}
+                                </button>
+                              ) : (
+                                <a 
+                                  href={option.url} 
+                                  className="flex items-center py-1 text-gray-300 hover:text-green-400"
+                                >
+                                  <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
+                                  {option.text}
+                                </a>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
-                  </a>
+                  ) : (
+                    <a 
+                      href={link.url} 
+                      className="flex items-center py-2 text-gray-300 hover:text-green-400 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
+                      {link.text}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
