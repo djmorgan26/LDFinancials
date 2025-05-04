@@ -1,10 +1,20 @@
-import { StrictMode } from 'react'
+import React from 'react'
 import { createRoot } from 'react-dom/client'
+import App from './App'
 import './index.css'
-import App from './App.tsx'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+const rootElement = document.getElementById('root')
+
+// Handle the potential null value
+if (!rootElement) {
+  throw new Error('Failed to find the root element')
+}
+
+// Now TypeScript knows rootElement is not null
+const root = createRoot(rootElement)
+
+root.render(
+  <React.StrictMode>
     <App />
-  </StrictMode>,
+  </React.StrictMode>,
 )

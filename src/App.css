@@ -1,3 +1,45 @@
-#root {
+/* App-specific styles */
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
   
-}
+  /* Add spacing below the header for content */
+  .content-container {
+    padding-top: 64px; /* Adjust based on your header height */
+    flex: 1;
+  }
+  
+  /* Any custom animations or styles that aren't easily done with Tailwind */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  /* You can define custom utility classes or component styles here */
+  .financial-card {
+    @apply bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700;
+  }
+  
+  .section-title {
+    @apply text-xl font-semibold text-gray-100 mb-4;
+  }
+  
+  /* Define dark mode colors (Tailwind already handles most of this) */
+  :root {
+    --primary: #4f46e5; /* indigo-600 */
+    --primary-hover: #4338ca; /* indigo-700 */
+    --surface: #1f2937; /* gray-800 */
+    --surface-accent: #374151; /* gray-700 */
+    --text: #f9fafb; /* gray-50 */
+    --text-muted: #9ca3af; /* gray-400 */
+  }
