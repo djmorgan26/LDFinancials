@@ -41,23 +41,25 @@ const SignIn: React.FC<SignInProps> = ({ auth }) => {
 
   useEffect(() => {
     const tagline = document.getElementById('tagline');
-    
     const handleMouseMove = (e: MouseEvent) => {
-      if (tagline) {
-        const x = e.clientX;
-        const width = window.innerWidth;
-        const percentX = Math.round((x / width) * 100);
-        tagline.style.backgroundImage = `linear-gradient(to right, #ffffff, #00ff00 ${percentX}%, #ffffff)`;
-      }
+        if (tagline) {
+            const x = e.clientX;
+            const width = window.innerWidth;
+            const percentX = Math.round((x / width) * 100);
+            tagline.style.backgroundImage = `linear-gradient(to right, #ffffff, #00ff00 ${percentX}%, #ffffff)`;
+        }
     };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    
+
+    // Wait for the next tick to ensure DOM is ready
+    requestAnimationFrame(() => {
+        document.addEventListener('mousemove', handleMouseMove);
+    });
+
     // Cleanup function to remove event listener
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mousemove', handleMouseMove);
     };
-  }, []);
+}, []);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
