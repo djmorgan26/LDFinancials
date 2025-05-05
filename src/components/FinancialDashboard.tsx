@@ -116,7 +116,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ auth }) => {
   
   const chartVariants = {
     hidden: { scaleY: 0 },
-    visible: i => ({
+    visible: (i: number) => ({
       scaleY: 1,
       transition: {
         delay: i * 0.1,
