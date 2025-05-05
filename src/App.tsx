@@ -1,39 +1,73 @@
 import SignIn from './components/SignIn';
 import Header from './components/Header';
-import { onAuthStateChanged, Auth } from 'firebase/auth';
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { onAuthStateChanged, Auth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { useState, useEffect, JSX } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { AnimatePresence } from 'framer-motion';
 
-// Create a component to handle the auth state
-const AuthHandler = ({ auth }: { auth: Auth }) => {
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const location = useLocation();
+// Optional setup for persistent authentication across browser sessions
+const setupPersistence = async (auth: Auth) => {
+  try {
+    // This ensures the user stays signed in even after browser restart
+    await setPersistence(auth, browserLocalPersistence);
+  } catch (error) {
+    console.error("Error setting persistence:", error);
+  }
+};
 
-  // Handle auth state changes
+// Protected route component
+const ProtectedRoute = ({ auth, children }: { auth: Auth; children: JSX.Element }) => {
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setSignedIn(!!user);
+      setLoading(false);
     });
     
     return () => unsubscribe();
   }, [auth]);
 
-  // Handle sign-in attempts
+  if (loading) return <LoadingScreen />;
+  
+  if (!signedIn) return <Navigate to="/signin" />;
+  
+  return children;
+};
+
+function App({ auth }: { auth: Auth }) {
+  const [user, setUser] = useState<any>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Set up firebase persistence
   useEffect(() => {
-    // Create a global event listener for sign-in attempts
+    setupPersistence(auth);
+  }, [auth]);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setInitialLoading(false);
+    });
+    
+    return () => unsubscribe();
+  }, [auth]);
+
+  // Global listener for sign-in attempts
+  useEffect(() => {
     const handleSignInAttempt = () => {
-      setIsLoading(true);
+      setIsSigningIn(true);
       
-      // Always show loading for at least 3 seconds
+      // Show loading for at least 3 seconds
       setTimeout(() => {
-        setIsLoading(false);
+        setIsSigningIn(false);
       }, 3000);
     };
     
-    // Listen for custom event from SignIn component
     window.addEventListener('signInAttempt', handleSignInAttempt);
     
     return () => {
@@ -41,35 +75,42 @@ const AuthHandler = ({ auth }: { auth: Auth }) => {
     };
   }, []);
 
-  // Initial loading before we know auth state
-  if (signedIn === null) {
-    return null; // Or a minimal initial loader if needed
-  }
-
-  // Show loading screen during transition
-  if (isLoading) {
+  // Show loading during initial app load or signing in
+  if (initialLoading || isSigningIn) {
     return <LoadingScreen />;
   }
 
-  // If on root path and signed in, show Header
-  if (location.pathname === '/' && signedIn) {
-    return <Header auth={auth} />;
-  }
-  
-  // If not signed in or on sign in page, show SignIn
-  return <SignIn auth={auth} />;
-};
-
-function App({ auth }: { auth: Auth }) {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-900">
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="*" element={<AuthHandler auth={auth} />} />
-          </Routes>
-        </AnimatePresence>
-      </div>
+      <AnimatePresence mode="wait">
+        <Routes>
+          {/* Public routes */}
+          <Route path="/signin" element={user ? <Navigate to="/" /> : <SignIn auth={auth} />} />
+          
+          {/* Protected routes */}
+          <Route path="/" element={
+            <ProtectedRoute auth={auth}>
+              <Header auth={auth} />
+            </ProtectedRoute>
+          } />
+          
+          {/* Add more protected routes here */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute auth={auth}>
+              <div>Dashboard Page</div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/reports" element={
+            <ProtectedRoute auth={auth}>
+              <div>Reports Page</div>
+            </ProtectedRoute>
+          } />
+          
+          {/* Catch all other routes and redirect to home */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </AnimatePresence>
     </BrowserRouter>
   );
 }
