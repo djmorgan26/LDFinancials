@@ -18,9 +18,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
  
-
-
-
 const rootElement = document.getElementById('root')
 
 // Handle the potential null value

@@ -1,259 +1,184 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { Auth, signOut } from 'firebase/auth';
-import { useState, useRef, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faGaugeHigh, 
-  faMoneyBillTransfer, 
-  faChartColumn, 
-  faUserCircle, 
-  faIdCard, 
-  faGear, 
-  faRightFromBracket
-} from '@fortawesome/free-solid-svg-icons';
-
+import { Link } from 'react-router-dom';
+import logo from '../assets/AI_Finance_logo_nobackground_allgreen.png';
 
 interface HeaderProps {
   auth: Auth;
 }
 
-// Define the link types for TypeScript
-interface Link {
-  text: string;
-  url: string;
-  icon: string;
-}
-
-interface DropdownOption {
-  text: string;
-  url: string;
-  icon: string;
-}
-
-export default function Header({ auth }: HeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
-  const accountRef = useRef<HTMLLIElement>(null);
-
-  const title = "L&D Financial Dashboard";
+const Header: React.FC<HeaderProps> = ({ auth }) => {
+  // State to track which dropdown is currently open
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
-  const links: Link[] = [
-    { text: 'Dashboard', url: '/', icon: 'fa-gauge-high' },
-    { text: 'Transactions', url: '/transactions', icon: 'fa-money-bill-transfer' },
-    { text: 'Reports', url: '/reports', icon: 'fa-chart-column' },
-    { text: 'Account', url: '/account', icon: 'fa-user-circle' },
-  ];
-
-  const accountDropdownOptions: DropdownOption[] = [
-    { text: 'Profile', url: '/profile', icon: 'fa-id-card' },
-    { text: 'Settings', url: '/settings', icon: 'fa-gear' },
-    { text: 'Sign Out', url: '/signout', icon: 'fa-right-from-bracket' },
-  ];
-
+  // References to detect clicks outside the dropdown
+  const accountRef = useRef<HTMLDivElement>(null);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const reportsRef = useRef<HTMLDivElement>(null);
+  
+  // Handle sign out
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      window.location.href = '/login'; // Redirect to login page after sign out
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
-
-  // Map icons to their corresponding FontAwesome icons
-  const getIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'fa-gauge-high':
-        return faGaugeHigh;
-      case 'fa-money-bill-transfer':
-        return faMoneyBillTransfer;
-      case 'fa-chart-column':
-        return faChartColumn;
-      case 'fa-user-circle':
-        return faUserCircle;
-      case 'fa-id-card':
-        return faIdCard;
-      case 'fa-gear':
-        return faGear;
-      case 'fa-right-from-bracket':
-        return faRightFromBracket;
-      default:
-        return faUserCircle;
+  
+  // Toggle dropdown menu
+  const toggleDropdown = (menu: string) => {
+    if (openDropdown === menu) {
+      setOpenDropdown(null); // Close if it's already open
+    } else {
+      setOpenDropdown(menu); // Open the clicked menu
     }
   };
-
+  
+  // Handle clicks outside the dropdowns to close them
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
-        setIsAccountDropdownOpen(false);
+      // Check if click was outside all dropdown menus
+      const isOutsideAccount = accountRef.current && !accountRef.current.contains(event.target as Node);
+      const isOutsideDashboard = dashboardRef.current && !dashboardRef.current.contains(event.target as Node);
+      const isOutsideReports = reportsRef.current && !reportsRef.current.contains(event.target as Node);
+      
+      if (isOutsideAccount && isOutsideDashboard && isOutsideReports) {
+        setOpenDropdown(null);
       }
     };
-
+    
+    // Add event listener
     document.addEventListener('mousedown', handleClickOutside);
+    
+    // Clean up event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
   
   return (
-    <header className="fixed w-full top-0 left-0 bg-gray-900 text-white shadow-lg z-50">
+    <header className="bg-gray-900 text-white shadow-md">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
-          {/* Business Logo & Title */}
+          {/* Logo */}
+          <Link to="/">
           <div className="flex items-center">
-            <a href="/" className="flex items-center">
-              <img 
-                src="/src/assets/AI_Finance_logo_nobackground_allgreen.png" 
-                alt="Business Logo" 
-                className="h-16 w-16 mr-2" 
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null;
-                  target.src = 'https://via.placeholder.com/64x64?text=AI+Finance';
-                }}
-              /> 
-              <h1 className="text-xl font-bold text-green-400">{title}</h1>
-            </a>
+            <img src={logo} alt="AI Finance Logo" className="h-12 mr-4" />
+            <h1 className="text-2xl font-bold text-green-400">Artificial Finance</h1>
           </div>
+          </Link>
           
-          {/* Desktop Navigation */}
-          <nav className="hidden md:block">
-            <ul className="flex space-x-8 items-center">
-              {links.map((link, index) => ( 
-                <li key={index} ref={link.text === 'Account' ? accountRef : null}>
-                  {link.text === 'Account' ? (
-                    <div
-                      className="relative text-gray-300 hover:text-green-400 cursor-pointer"
-                      onMouseEnter={() => setIsAccountDropdownOpen(true)}
-                      onMouseLeave={() => setIsAccountDropdownOpen(false)}
-                    >
-                      <div className='flex items-center'>
-                        <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
-                        {link.text}                        
-                      </div>
-                      {isAccountDropdownOpen && (
-                        <ul className="absolute right-0 mt-2 py-2 w-40 bg-gray-800 border border-gray-700 rounded shadow-lg">
-                          {accountDropdownOptions.map((option, optionIndex) => (
-                            <li key={optionIndex}>
-                              {option.text === 'Sign Out' ? (
-                                <button
-                                  onClick={handleSignOut}
-                                  className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-700 flex items-center"
-                                >
-                                  <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
-                                  {option.text}
-                                </button>
-                              ) : (
-                                <a
-                                  href={option.url}
-                                  className="block px-4 py-2 text-gray-300 hover:bg-gray-700"
-                                >
-                                  <div className='flex items-center'>
-                                    <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
-                                    {option.text}
-                                  </div>
-                                </a>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ) : (
-                    <a 
-                      href={link.url} 
-                      className="text-gray-300 hover:text-green-400 transition-colors"
-                    >
-                      <div className='flex items-center'>
-                        <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
-                        {link.text}
-                      </div>
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-          
-          {/* Mobile Menu Button */}
-          <button 
-            type="button"
-            className="md:hidden text-gray-300 hover:text-white focus:outline-none"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          >
-            <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
-              {isMenuOpen ? (
-                <path 
-                  fillRule="evenodd" 
-                  d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 1 1 1.414 1.414l-4.828 4.829 4.828 4.828z"
-                />
-              ) : (
-                <path 
-                  fillRule="evenodd" 
-                  d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2z"
-                />
+          {/* Navigation */}
+          <nav className="flex items-center space-x-6">
+            {/* Dashboard Dropdown */}
+            <div className="relative" ref={dashboardRef}>
+              <button 
+                onClick={() => toggleDropdown('dashboard')}
+                className={`flex items-center space-x-1 py-2 px-3 rounded-md ${
+                  openDropdown === 'dashboard' 
+                    ? 'bg-green-700 text-white' 
+                    : 'hover:bg-gray-800'
+                }`}
+              >
+                <span>Dashboard</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className={`h-4 w-4 transition-transform ${openDropdown === 'dashboard' ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* Dashboard Dropdown Menu */}
+              {openDropdown === 'dashboard' && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-10">
+                  <Link to="/dashboard" className="block px-4 py-2 text-sm hover:bg-gray-700">Overview</Link>
+                  <Link to="/dashboard/transactions" className="block px-4 py-2 text-sm hover:bg-gray-700">Transactions</Link>
+                  <Link to="/dashboard/budgets" className="block px-4 py-2 text-sm hover:bg-gray-700">Budgets</Link>
+                  <Link to="/dashboard/goals" className="block px-4 py-2 text-sm hover:bg-gray-700">Financial Goals</Link>
+                </div>
               )}
-            </svg>
-          </button>
-        </div>
-        
-        {/* Mobile Navigation Menu */}
-        {isMenuOpen && (
-          <nav className="md:hidden pt-4 pb-2 border-t border-gray-800 mt-2">
-            <ul className="space-y-2">
-              {links.map((link, index) => (
-                <li key={index}>
-                  {link.text === 'Account' ? (
-                    <div className="py-2">
-                      <div 
-                        className="flex items-center text-gray-300 hover:text-green-400 cursor-pointer mb-2"
-                        onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
-                      >
-                        <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
-                        {link.text}
-                      </div>
-                      
-                      {isAccountDropdownOpen && (
-                        <ul className="pl-6 space-y-2 border-l border-gray-700">
-                          {accountDropdownOptions.map((option, optionIndex) => (
-                            <li key={optionIndex}>
-                              {option.text === 'Sign Out' ? (
-                                <button
-                                  onClick={handleSignOut}
-                                  className="w-full text-left py-1 text-gray-300 hover:text-green-400 flex items-center"
-                                >
-                                  <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
-                                  {option.text}
-                                </button>
-                              ) : (
-                                <a 
-                                  href={option.url} 
-                                  className="flex items-center py-1 text-gray-300 hover:text-green-400"
-                                >
-                                  <FontAwesomeIcon icon={getIcon(option.icon)} className="mr-2" />
-                                  {option.text}
-                                </a>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ) : (
-                    <a 
-                      href={link.url} 
-                      className="flex items-center py-2 text-gray-300 hover:text-green-400 transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <FontAwesomeIcon icon={getIcon(link.icon)} className="mr-2" />
-                      {link.text}
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
+            </div>
+            
+            {/* Reports Dropdown */}
+            <div className="relative" ref={reportsRef}>
+              <button 
+                onClick={() => toggleDropdown('reports')}
+                className={`flex items-center space-x-1 py-2 px-3 rounded-md ${
+                  openDropdown === 'reports' 
+                    ? 'bg-green-700 text-white' 
+                    : 'hover:bg-gray-800'
+                }`}
+              >
+                <span>Reports</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className={`h-4 w-4 transition-transform ${openDropdown === 'reports' ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* Reports Dropdown Menu */}
+              {openDropdown === 'reports' && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-10">
+                  <Link to="/reports/monthly" className="block px-4 py-2 text-sm hover:bg-gray-700">Monthly Summary</Link>
+                  <Link to="/reports/spending" className="block px-4 py-2 text-sm hover:bg-gray-700">Spending Analysis</Link>
+                  <Link to="/reports/income" className="block px-4 py-2 text-sm hover:bg-gray-700">Income Trends</Link>
+                  <Link to="/reports/investments" className="block px-4 py-2 text-sm hover:bg-gray-700">Investment Performance</Link>
+                </div>
+              )}
+            </div>
+            
+            {/* Account Dropdown */}
+            <div className="relative" ref={accountRef}>
+              <button 
+                onClick={() => toggleDropdown('account')}
+                className={`flex items-center space-x-1 py-2 px-3 rounded-md ${
+                  openDropdown === 'account' 
+                    ? 'bg-green-700 text-white' 
+                    : 'hover:bg-gray-800'
+                }`}
+              >
+                <span>Account</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className={`h-4 w-4 transition-transform ${openDropdown === 'account' ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* Account Dropdown Menu */}
+              {openDropdown === 'account' && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-10">
+                  <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-700">Profile</Link>
+                  <Link to="/settings" className="block px-4 py-2 text-sm hover:bg-gray-700">Settings</Link>
+                  <Link to="/connected-accounts" className="block px-4 py-2 text-sm hover:bg-gray-700">Connected Accounts</Link>
+                  <div className="border-t border-gray-700 my-1"></div>
+                  <button 
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </nav>
-        )}
+        </div>
       </div>
     </header>
   );
-}
+};
+
+export default Header;
