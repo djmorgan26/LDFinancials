@@ -10,6 +10,7 @@ import {
   faGear, 
   faRightFromBracket
 } from '@fortawesome/free-solid-svg-icons';
+import logo from '../assets/AI_Finance_logo_nobackground_allgreen.png';
 
 
 interface HeaderProps {
@@ -101,13 +102,10 @@ export default function Header({ auth }: HeaderProps) {
           <div className="flex items-center">
             <a href="/" className="flex items-center">
               <img 
-                src="/src/assets/AI_Finance_logo_nobackground_allgreen.png" 
+                src={logo} 
                 alt="Business Logo" 
                 className="h-16 w-16 mr-2" 
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null;
-                  target.src = 'https://via.placeholder.com/64x64?text=AI+Finance';
+                onError={({ currentTarget }) => { currentTarget.style.display = 'none';
                 }}
               /> 
               <h1 className="text-xl font-bold text-green-400">{title}</h1>
